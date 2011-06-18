@@ -9,7 +9,9 @@ class TestThumbsUp < Test::Unit::TestCase
 
   def test_acts_as_voter_instance_methods
     user_for = User.create(:name => 'david')
+    weighted_user_for = User.create(:name => 'BossHog')
     user_against = User.create(:name => 'brady')
+    weighted_user_against = User.create(:name => 'UncleBob')
     item = Item.create(:name => 'XBOX', :description => 'XBOX console')
 
     assert_not_nil user_for.vote_for(item)
@@ -28,6 +30,27 @@ class TestThumbsUp < Test::Unit::TestCase
       user_for.voted_which_way?(item, :foo)
     end
 
+    # Weighted Votes (Points)
+    assert_not_nil weighted_user_for.vote_for(item, :points => 5)
+    assert_raises(ActiveRecord::RecordInvalid) do
+      weighted_user_for.vote_for(item, :points => 5)
+    end
+    assert_equal true, weighted_user_for.voted_for?(item)
+    assert_equal false, weighted_user_for.voted_against?(item)
+    assert_equal true, weighted_user_for.voted_on?(item)
+    assert_equal 1, weighted_user_for.vote_count
+    assert_equal 5, weighted_user_for.point_count(:all)
+    assert_equal 5, weighted_user_for.point_count(:up)
+    assert_equal 0, weighted_user_for.point_count(:down)
+    assert_equal 1, weighted_user_for.vote_count(:all)
+    assert_equal 1, weighted_user_for.vote_count(:up)
+    assert_equal 0, weighted_user_for.vote_count(:down)
+    assert_equal true, weighted_user_for.voted_which_way?(item, :up)
+    assert_equal false, weighted_user_for.voted_which_way?(item, :down)
+    assert_raises(ArgumentError) do
+      weighted_user_for.voted_which_way?(item, :foo)
+    end
+
     assert_not_nil user_against.vote_against(item)
     assert_raises(ActiveRecord::RecordInvalid) do
       user_against.vote_against(item)
@@ -44,20 +67,38 @@ class TestThumbsUp < Test::Unit::TestCase
       user_against.voted_which_way?(item, :foo)
     end
 
-    assert_not_nil user_against.vote_exclusively_for(item)
-    assert_equal true, user_against.voted_for?(item)
+    # Weighted User
+    assert_not_nil weighted_user_against.vote_against(item, :points => 5)
+    assert_raises(ActiveRecord::RecordInvalid) do
+      weighted_user_against.vote_against(item, :points => 5)
+    end
+    assert_equal false, weighted_user_against.voted_for?(item)
+    assert_equal true, weighted_user_against.voted_against?(item)
+    assert_equal true, weighted_user_against.voted_on?(item)
+    assert_equal 1, weighted_user_against.vote_count
+    assert_equal -5, weighted_user_against.point_count(:all)
+    assert_equal 0, weighted_user_against.point_count(:up)
+    assert_equal -5, weighted_user_against.point_count(:down)
+    assert_equal false, weighted_user_against.voted_which_way?(item, :up)
+    assert_equal true, weighted_user_against.voted_which_way?(item, :down)
+    assert_raises(ArgumentError) do
+      weighted_user_against.voted_which_way?(item, :foo)
+    end
 
-    assert_not_nil user_for.vote_exclusively_against(item)
-    assert_equal true, user_for.voted_against?(item)
+    assert_not_nil weighted_user_against.vote_exclusively_for(item)
+    assert_equal true, weighted_user_against.voted_for?(item)
 
-    user_for.clear_votes(item)
-    assert_equal 0, user_for.vote_count
+    assert_not_nil weighted_user_for.vote_exclusively_against(item)
+    assert_equal true, weighted_user_for.voted_against?(item)
 
-    user_against.clear_votes(item)
-    assert_equal 0, user_against.vote_count
+    weighted_user_for.clear_votes(item)
+    assert_equal 0, weighted_user_for.vote_count
+
+    weighted_user_against.clear_votes(item)
+    assert_equal 0, weighted_user_against.vote_count
 
     assert_raises(ArgumentError) do
-      user_for.vote(item, {:direction => :foo})
+      weighted_user_for.vote(item, {:direction => :foo})
     end
   end
 
@@ -98,10 +139,48 @@ class TestThumbsUp < Test::Unit::TestCase
     assert_equal false, item.voted_by?(non_voting_user)
   end
 
+  def test_acts_as_voteable_instance_methods_points
+    user_for = User.create(:name => 'david')
+    another_user_for = User.create(:name => 'name')
+    user_against = User.create(:name => 'brady')
+    item = Item.create(:name => 'XBOX', :description => 'XBOX console')
+
+    user_for.vote_for(item, :points => 5)
+    another_user_for.vote_for(item)
+
+    assert_equal 6, item.points_for
+    assert_equal 0, item.points_against
+    assert_equal 6, item.points
+
+    user_against.vote_against(item, :points => 10)
+
+    assert_equal -10, item.points_against
+    assert_equal -4, item.points
+
+    assert_equal 3, item.votes_count
+
+  end
+
   def test_tally_empty
     item = Item.create(:name => 'XBOX', :description => 'XBOX console')
 
     assert_equal 0, Item.tally.length
+  end
+
+  def test_tally_points
+    item = Item.create(:name => 'XBOX', :description => 'XBOX console')
+    user = User.create(:name => 'david')
+    another_user = User.create(:name => 'UncleBob')
+
+    vote = user.vote_for(item, :points => 5)
+    vote.created_at = 3.days.ago
+    vote.save
+
+    vote = another_user.vote_against(item, :points => 3)
+    vote.created_at = 5.days.ago
+    vote.save
+
+    assert_equal 2, Item.tally({}).first.points
   end
 
   def test_tally_starts_at

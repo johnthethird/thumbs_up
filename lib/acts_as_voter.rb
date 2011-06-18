@@ -41,6 +41,15 @@ module ThumbsUp #:nodoc:
         v.count
       end
 
+      def point_count(for_or_against = :all)
+        v = Vote.where(:voter_id => id).where(:voter_type => self.class.name)
+        v = case for_or_against
+          when :all   then v.sum("points")
+          when :up    then v.where(:vote => true).sum("points")
+          when :down  then v.where(:vote => false).sum("points")
+        end
+      end
+
       def voted_for?(voteable)
         voted_which_way?(voteable, :up)
       end
@@ -58,20 +67,20 @@ module ThumbsUp #:nodoc:
             ).count
       end
 
-      def vote_for(voteable)
-        self.vote(voteable, { :direction => :up, :exclusive => false })
+      def vote_for(voteable, options = {})
+        self.vote(voteable, options.merge({:direction => :up, :exclusive => false }))
       end
 
-      def vote_against(voteable)
-        self.vote(voteable, { :direction => :down, :exclusive => false })
+      def vote_against(voteable, options = {})
+        self.vote(voteable, options.merge({:direction => :down, :exclusive => false }))
       end
 
-      def vote_exclusively_for(voteable)
-        self.vote(voteable, { :direction => :up, :exclusive => true })
+      def vote_exclusively_for(voteable, options = {})
+        self.vote(voteable, options.merge({:direction => :up, :exclusive => true }))
       end
 
-      def vote_exclusively_against(voteable)
-        self.vote(voteable, { :direction => :down, :exclusive => true })
+      def vote_exclusively_against(voteable, options = {})
+        self.vote(voteable, options.merge({:direction => :down, :exclusive => true }))
       end
 
       def vote(voteable, options = {})
@@ -80,7 +89,8 @@ module ThumbsUp #:nodoc:
           self.clear_votes(voteable)
         end
         direction = (options[:direction].to_sym == :up)
-        Vote.create!(:vote => direction, :voteable => voteable, :voter => self)
+        points = (options[:points] || 1).to_i * (direction ? 1 : -1)
+        Vote.create!(:vote => direction, :voteable => voteable, :voter => self, :points => points)
       end
 
       def clear_votes(voteable)

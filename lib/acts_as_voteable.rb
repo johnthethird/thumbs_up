@@ -110,7 +110,7 @@ module ThumbsUp
         # t = t.having("#{vote_count} > 0")
         # t = t.having(["#{vote_count} >= ?", options[:at_least]]) if options[:at_least]
         # t = t.having(["#{vote_count} <= ?", options[:at_most]]) if options[:at_most]
-        t.select("#{self.table_name}.*, COUNT(#{Vote.table_name}.voteable_id) AS vote_count")
+        t.select("#{self.table_name}.*, COUNT(#{Vote.table_name}.voteable_id) AS vote_count, SUM(#{Vote.table_name}.points) AS points ")
       end
 
       def column_names_for_tally
@@ -127,6 +127,18 @@ module ThumbsUp
 
       def votes_against
         Vote.where(:voteable_id => id, :voteable_type => self.class.name, :vote => false).count
+      end
+
+      def points_for
+        Vote.where(:voteable_id => id, :voteable_type => self.class.name, :vote => true).sum("points")
+      end
+
+      def points_against
+        Vote.where(:voteable_id => id, :voteable_type => self.class.name, :vote => false).sum("points")
+      end
+
+      def points
+        points_for - points_against
       end
 
       def percent_for

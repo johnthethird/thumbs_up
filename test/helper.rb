@@ -15,6 +15,7 @@ ActiveRecord::Migration.verbose = false
 ActiveRecord::Schema.define do
   create_table :votes, :force => true do |t|
     t.boolean    :vote,     :default => false
+    t.integer    :points, :default => 0
     t.references :voteable, :polymorphic => true, :null => false
     t.references :voter,    :polymorphic => true
     t.timestamps
@@ -23,14 +24,14 @@ ActiveRecord::Schema.define do
   add_index :votes, [:voter_id, :voter_type]
   add_index :votes, [:voteable_id, :voteable_type]
 
-  # Comment out the line below to allow multiple votes per voter on a single entity.  
+  # Comment out the line below to allow multiple votes per voter on a single entity.
   add_index :votes, [:voter_id, :voter_type, :voteable_id, :voteable_type], :unique => true, :name => 'fk_one_vote_per_user_per_entity'
-  
+
   create_table :users, :force => true do |t|
     t.string :name
     t.timestamps
   end
-  
+
   create_table :items, :force => true do |t|
     t.string :name
     t.string :description
@@ -49,7 +50,7 @@ class Vote < ActiveRecord::Base
   belongs_to :voteable, :polymorphic => true
   belongs_to :voter, :polymorphic => true
 
-  attr_accessible :vote, :voter, :voteable
+  attr_accessible :vote, :voter, :voteable, :points
 
   # Comment out the line below to allow multiple votes per user.
   validates_uniqueness_of :voteable_id, :scope => [:voteable_type, :voter_type, :voter_id]
