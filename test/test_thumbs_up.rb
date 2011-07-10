@@ -154,7 +154,7 @@ class TestThumbsUp < Test::Unit::TestCase
 
     user_against.vote_against(item, :points => 10)
 
-    assert_equal -10, item.points_against
+    assert_equal 10, item.points_against
     assert_equal -4, item.points
 
     assert_equal 3, item.votes_count

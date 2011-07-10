@@ -133,8 +133,10 @@ module ThumbsUp
         Vote.where(:voteable_id => id, :voteable_type => self.class.name, :vote => true).sum("points")
       end
 
+      # Keep same semantics as votes_against, which is a positive number. But in the table its negative,
+      # which makes doing SQL SUM() easy.
       def points_against
-        Vote.where(:voteable_id => id, :voteable_type => self.class.name, :vote => false).sum("points")
+        Vote.where(:voteable_id => id, :voteable_type => self.class.name, :vote => false).sum("points") * -1
       end
 
       def points
