@@ -90,7 +90,9 @@ module ThumbsUp #:nodoc:
         end
         direction = (options[:direction].to_sym == :up)
         points = (options[:points] || 1).to_i * (direction ? 1 : -1)
-        Vote.create!(:vote => direction, :voteable => voteable, :voter => self, :points => points)
+        v = Vote.create!(:vote => direction, :voteable => voteable, :voter => self, :points => points)
+        voteable.save!
+        v
       end
 
       def clear_votes(voteable)
@@ -100,6 +102,7 @@ module ThumbsUp #:nodoc:
           :voteable_id => voteable.id,
           :voteable_type => voteable.class.name
         ).map(&:destroy)
+        voteable.save!
       end
 
       def voted_which_way?(voteable, direction)

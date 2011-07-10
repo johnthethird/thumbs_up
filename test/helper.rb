@@ -36,6 +36,12 @@ ActiveRecord::Schema.define do
     t.string :name
     t.string :description
   end
+
+  create_table :pc_items, :force => true do |t|
+    t.string :name
+    t.string :description
+    t.integer :points_count_cache, :default => 0
+  end
 end
 
 require 'thumbs_up'
@@ -61,6 +67,10 @@ class User < ActiveRecord::Base
 end
 
 class Item < ActiveRecord::Base
+  acts_as_voteable
+end
+
+class PcItem < ActiveRecord::Base
   acts_as_voteable
 end
 

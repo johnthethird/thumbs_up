@@ -8,6 +8,7 @@ module ThumbsUp
     module ClassMethods
       def acts_as_voteable
         has_many :votes, :as => :voteable, :dependent => :destroy
+        before_save :cache_points_count
 
         include ThumbsUp::ActsAsVoteable::InstanceMethods
         extend  ThumbsUp::ActsAsVoteable::SingletonMethods
@@ -139,7 +140,7 @@ module ThumbsUp
         Vote.where(:voteable_id => id, :voteable_type => self.class.name, :vote => false).sum("points") * -1
       end
 
-      def points
+      def points_count
         points_for - points_against
       end
 
@@ -172,6 +173,13 @@ module ThumbsUp
               :voter_type => voter.class.name,
               :voter_id => voter.id
             ).count
+      end
+
+      private
+      def cache_points_count
+        if self.respond_to?(:points_count_cache)
+          self.points_count_cache = points_count
+        end
       end
 
     end
