@@ -14,7 +14,7 @@ ActiveRecord::Migration.verbose = false
 
 ActiveRecord::Schema.define do
   create_table :votes, :force => true do |t|
-    t.boolean    :vote,     :default => false
+    t.integer    :vote,     :default => 0
     t.integer    :points, :default => 0
     t.references :voteable, :polymorphic => true, :null => false
     t.references :voter,    :polymorphic => true

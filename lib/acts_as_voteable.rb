@@ -34,13 +34,13 @@ module ThumbsUp
 	options = args.extract_options!
 
 	tsub0 = Vote
-	tsub0 = tsub0.where("vote = ?", false)
+	tsub0 = tsub0.where("vote = ?", 0)
 	tsub0 = tsub0.where("voteable_type = ?", self.name)
 	tsub0 = tsub0.group("voteable_id")
 	tsub0 = tsub0.select("DISTINCT voteable_id, COUNT(vote) as Votes_Against")
 
 	tsub1 = Vote
-	tsub1 = tsub1.where("vote = ?", true)
+	tsub1 = tsub1.where("vote = ?", 1)
 	tsub1 = tsub1.where("voteable_type = ?", self.name)
 	tsub1 = tsub1.group("voteable_id")
 	tsub1 = tsub1.select("DISTINCT voteable_id, COUNT(vote) as Votes_For")
@@ -123,21 +123,21 @@ module ThumbsUp
     module InstanceMethods
 
       def votes_for
-        Vote.where(:voteable_id => id, :voteable_type => self.class.name, :vote => true).count
+        Vote.where(:voteable_id => id, :voteable_type => self.class.name, :vote => 1).count
       end
 
       def votes_against
-        Vote.where(:voteable_id => id, :voteable_type => self.class.name, :vote => false).count
+        Vote.where(:voteable_id => id, :voteable_type => self.class.name, :vote => 0).count
       end
 
       def points_for
-        Vote.where(:voteable_id => id, :voteable_type => self.class.name, :vote => true).sum("points")
+        Vote.where(:voteable_id => id, :voteable_type => self.class.name, :vote => 1).sum("points")
       end
 
       # Keep same semantics as votes_against, which is a positive number. But in the table its negative,
       # which makes doing SQL SUM() easy.
       def points_against
-        Vote.where(:voteable_id => id, :voteable_type => self.class.name, :vote => false).sum("points") * -1
+        Vote.where(:voteable_id => id, :voteable_type => self.class.name, :vote => 0).sum("points") * -1
       end
 
       def points_count

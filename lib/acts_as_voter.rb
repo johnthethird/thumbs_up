@@ -35,8 +35,8 @@ module ThumbsUp #:nodoc:
         v = Vote.where(:voter_id => id).where(:voter_type => self.class.name)
         v = case for_or_against
           when :all   then v
-          when :up    then v.where(:vote => true)
-          when :down  then v.where(:vote => false)
+          when :up    then v.where(:vote => 1)
+          when :down  then v.where(:vote => 0)
         end
         v.count
       end
@@ -45,8 +45,8 @@ module ThumbsUp #:nodoc:
         v = Vote.where(:voter_id => id).where(:voter_type => self.class.name)
         v = case for_or_against
           when :all   then v.sum("points")
-          when :up    then v.where(:vote => true).sum("points")
-          when :down  then v.where(:vote => false).sum("points")
+          when :up    then v.where(:vote => 1).sum("points")
+          when :down  then v.where(:vote => 0).sum("points")
         end
       end
 
@@ -89,8 +89,9 @@ module ThumbsUp #:nodoc:
           self.clear_votes(voteable)
         end
         direction = (options[:direction].to_sym == :up)
+        vote_val = direction ? 1 : 0
         points = (options[:points] || 1).to_i * (direction ? 1 : -1)
-        v = Vote.create!(:vote => direction, :voteable => voteable, :voter => self, :points => points)
+        v = Vote.create!(:vote => vote_val, :voteable => voteable, :voter => self, :points => points)
         voteable.save!
         v
       end
@@ -110,7 +111,7 @@ module ThumbsUp #:nodoc:
         0 < Vote.where(
               :voter_id => self.id,
               :voter_type => self.class.name,
-              :vote => direction == :up ? true : false,
+              :vote => direction == :up ? 1 : 0,
               :voteable_id => voteable.id,
               :voteable_type => voteable.class.name
             ).count
