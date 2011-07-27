@@ -8,7 +8,7 @@ module ThumbsUp
     module ClassMethods
       def acts_as_voteable
         has_many :votes, :as => :voteable, :dependent => :destroy
-        before_save :cache_points_count
+        before_update :cache_points_count
 
         include ThumbsUp::ActsAsVoteable::InstanceMethods
         extend  ThumbsUp::ActsAsVoteable::SingletonMethods
