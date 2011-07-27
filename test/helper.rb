@@ -40,7 +40,7 @@ ActiveRecord::Schema.define do
   create_table :pc_items, :force => true do |t|
     t.string :name
     t.string :description
-    t.integer :points_count_cache, :default => 0
+    t.integer :points_count, :default => 0
   end
 end
 

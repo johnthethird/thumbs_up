@@ -150,14 +150,15 @@ class TestThumbsUp < Test::Unit::TestCase
 
     assert_equal 6, item.points_for
     assert_equal 0, item.points_against
-    assert_equal 6, item.points_count
+    assert_equal 6, item.points_total
 
     user_against.vote_against(item, :points => 10)
 
     assert_equal 10, item.points_against
-    assert_equal -4, item.points_count
+    assert_equal -4, item.points_total
 
     assert_equal 3, item.votes_count
+
   end
 
   def test_acts_as_voteable_instance_methods_points_cached
@@ -165,12 +166,12 @@ class TestThumbsUp < Test::Unit::TestCase
     another_user_for = User.create(:name => 'name')
     user_against = User.create(:name => 'brady')
     item = PcItem.create(:name => 'XBOX', :description => 'XBOX console')
-    assert_equal 0, item.points_count_cache
+    assert_equal 0, item.points_count
 
     user_for.vote_for(item, :points => 5)
     another_user_for.vote_for(item)
 
-    assert_equal 6, item.points_count_cache
+    assert_equal 6, item.points_count
     assert_equal 6, item.points_for
     assert_equal 0, item.points_against
     assert_equal 6, item.points_count
@@ -178,7 +179,7 @@ class TestThumbsUp < Test::Unit::TestCase
     user_against.vote_against(item, :points => 10)
     assert_equal 10, item.points_against
     assert_equal -4, item.points_count
-    assert_equal -4, item.points_count_cache
+    assert_equal -4, item.points_count
 
     assert_equal 3, item.votes_count
 

@@ -140,8 +140,8 @@ module ThumbsUp
         Vote.where(:voteable_id => id, :voteable_type => self.class.name, :vote => 0).sum("points") * -1
       end
 
-      def points_count
-        points_for - points_against
+      def points_total
+        Vote.where(:voteable_id => id, :voteable_type => self.class.name).sum("points")
       end
 
       def percent_for
@@ -177,8 +177,8 @@ module ThumbsUp
 
       private
       def cache_points_count
-        if self.respond_to?(:points_count_cache)
-          self.points_count_cache = points_count
+        if self.respond_to?(:points_count)
+          self.points_count = points_total
         end
       end
 
