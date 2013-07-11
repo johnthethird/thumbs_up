@@ -46,6 +46,20 @@ end
 
 require 'thumbs_up'
 
+
+# Mock up a Draper-style decorator
+class ActiveRecord::Base
+  def decorated?;false;end
+end
+
+class ItemDecorator
+  attr_accessor :source
+  def self.decorate(source); self.new(source); end
+  def initialize(source); @source = source; end
+  def decorated?; true; end
+end
+
+
 class Vote < ActiveRecord::Base
 
   scope :for_voter, lambda { |*args| where(["voter_id = ? AND voter_type = ?", args.first.id, args.first.class.name]) }
@@ -76,3 +90,5 @@ end
 
 class Test::Unit::TestCase
 end
+
+
