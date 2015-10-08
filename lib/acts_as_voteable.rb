@@ -159,6 +159,7 @@ module ThumbsUp
       # Dont consider any votes with no times saved in the avg calculation
       def avg_time_saved
         count = Vote.where(:voteable_id => id, :voteable_type => self.class.name).where("time_saved > 0").count
+        return nil if count == 0
         (time_saved.to_f / count.to_f).round
       end
 
