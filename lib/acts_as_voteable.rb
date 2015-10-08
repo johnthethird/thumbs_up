@@ -152,6 +152,16 @@ module ThumbsUp
         (votes_against.to_f * 100 / (self.votes.size + 0.0001)).round
       end
 
+      def time_saved
+        Vote.where(:voteable_id => id, :voteable_type => self.class.name).sum("time_saved")
+      end
+
+      # Dont consider any votes with no times saved in the avg calculation
+      def avg_time_saved
+        count = Vote.where(:voteable_id => id, :voteable_type => self.class.name).where("time_saved > 0").count
+        (time_saved.to_f / count.to_f).round
+      end
+
       # You'll probably want to use this method to display how 'good' a particular voteable
       # is, and/or sort based on it.
       def plusminus
